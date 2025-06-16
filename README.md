@@ -1,7 +1,7 @@
 # 🧠 LaySumm: Research on Simplified Summarization with LLMs
 
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)  
-**LaySumm** is a research project focused on generating **Plain Language Summaries (PLS)** from complex documents (e.g., medical, scientific, or legal) using Large Language Models (LLMs) like GPT-4, LLaMA, Mistral, and others. This project explores **prompt engineering**, **fine-tuning**, and **retrieval-augmented generation (RAG)** strategies to produce summaries that are **readable**, **factually accurate**, and **accessible** to general audiences.
+**LaySumm** is a research project focused on generating **detailed Insights based on audience** from complex documents (e.g., medical, scientific, or legal) using Large Language Models (LLMs) like GPT-4, LLaMA, Mistral, and others. This project explores **prompt engineering**, **fine-tuning**, **retrieval-augmented generation (RAG)** and **Agentic Approach** strategies to produce summaries that are **readable**, **factually accurate**, and **accessible** to general audiences.
 
 ---
 
@@ -9,7 +9,7 @@
 
 - ✅ Build reproducible pipelines for generating simplified summaries using LLMs.
 - ✅ Evaluate readability (e.g., Flesch-Kincaid) and factual consistency of generated content.
-- ✅ Compare OpenAI, Hugging Face, and open-source models for PLS tasks.
+- ✅ Compare OpenAI, Hugging Face, and open-source models for generating insights tasks.
 - ✅ Explore prompt-tuning, fine-tuning, and retrieval-based summarization.
 - ✅ Provide dashboards and metrics to visualize improvement over baselines.
 
