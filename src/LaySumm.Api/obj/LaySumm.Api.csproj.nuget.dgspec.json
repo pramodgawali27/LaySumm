@@ -65,7 +65,7 @@
             },
             "Azure.Core": {
               "target": "Package",
-              "version": "[1.44.1, )"
+              "version": "[1.49.0, )"
             },
             "Azure.Data.Tables": {
               "target": "Package",
@@ -73,7 +73,7 @@
             },
             "Azure.Identity": {
               "target": "Package",
-              "version": "[1.13.1, )"
+              "version": "[1.16.0, )"
             },
             "Azure.Messaging.EventGrid": {
               "target": "Package",
@@ -81,7 +81,7 @@
             },
             "Azure.Search.Documents": {
               "target": "Package",
-              "version": "[11.5.1, )"
+              "version": "[11.7.0, )"
             },
             "Azure.Storage.Blobs": {
               "target": "Package",
@@ -95,9 +95,17 @@
               "target": "Package",
               "version": "[0.5.0-preview, )"
             },
+            "Microsoft.Extensions.Azure": {
+              "target": "Package",
+              "version": "[1.13.0, )"
+            },
             "OpenAI": {
               "target": "Package",
               "version": "[2.0.0-beta.4, )"
+            },
+            "UglyToad.PdfPig": {
+              "target": "Package",
+              "version": "[1.7.0-custom-5, )"
             }
           },
           "imports": [

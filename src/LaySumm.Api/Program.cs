@@ -13,6 +13,7 @@ using LaySumm.Api.Processing.Summarization;
 using LaySumm.Api.Processing.Visualization;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
+using SearchOptionsConfig = LaySumm.Api.Configuration.SearchOptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,8 +25,8 @@ builder.Services.AddOptions<StorageOptions>()
     .Bind(builder.Configuration.GetSection(StorageOptions.SectionName))
     .ValidateDataAnnotations();
 
-builder.Services.AddOptions<SearchOptions>()
-    .Bind(builder.Configuration.GetSection(SearchOptions.SectionName))
+builder.Services.AddOptions<SearchOptionsConfig>()
+    .Bind(builder.Configuration.GetSection(SearchOptionsConfig.SectionName))
     .ValidateDataAnnotations();
 
 builder.Services.AddOptions<ImageGenerationOptions>()
@@ -52,7 +53,7 @@ builder.Services.AddAzureClients(factory =>
 
 builder.Services.AddSingleton(provider =>
 {
-    var options = provider.GetRequiredService<IOptions<SearchOptions>>().Value;
+    var options = provider.GetRequiredService<IOptions<SearchOptionsConfig>>().Value;
     return new SearchClient(new Uri(options.Endpoint), options.IndexName, new AzureKeyCredential(options.Key));
 });
 

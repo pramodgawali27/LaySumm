@@ -88,7 +88,7 @@ public sealed class DocumentParser
     private static IEnumerable<DocumentSpan> ExtractPdfSpans(string sectionId, Page page)
     {
         var spans = new List<DocumentSpan>();
-        var paragraphs = page.GetText().Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+        var paragraphs = page.Text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
         var paragraphIndex = 0;
 
         foreach (var paragraph in paragraphs)

@@ -19,7 +19,7 @@ namespace LaySumm.Api.Processing.Indexing;
 public sealed class DocumentIndexer
 {
     private readonly SearchClient _searchClient;
-    private readonly AzureOpenAIClient _azureClient;
+    private readonly OpenAIClient _azureClient;
     private readonly AzureOpenAIOptions _azureOptions;
     private readonly SearchOptionsConfig _searchOptions;
     private readonly ILogger<DocumentIndexer> _logger;
@@ -33,7 +33,7 @@ public sealed class DocumentIndexer
         _searchClient = searchClient;
         _azureOptions = azureOptions.Value;
         _searchOptions = searchOptions.Value;
-        _azureClient = new AzureOpenAIClient(new Uri(_azureOptions.Endpoint), new AzureKeyCredential(_azureOptions.Key));
+        _azureClient = new OpenAIClient(new Uri(_azureOptions.Endpoint), new AzureKeyCredential(_azureOptions.Key));
         _logger = logger;
     }
 
@@ -56,28 +56,6 @@ public sealed class DocumentIndexer
                         IsSearchable = true,
                         VectorSearchDimensions = 1536,
                         VectorSearchProfileName = "openai-default"
-                    }
-                },
-                VectorSearch = new VectorSearch
-                {
-                    Profiles =
-                    {
-                        new VectorSearchProfile("openai-default", "openai-vectorizer")
-                    },
-                    AlgorithmConfigurations =
-                    {
-                        new HnswVectorSearchAlgorithmConfiguration("openai-hnsw")
-                    }
-                },
-                Vectorizers =
-                {
-                    new AzureOpenAIVectorizer("openai-vectorizer")
-                    {
-                        AzureOpenAIParameters = new AzureOpenAIVectorizerParameters
-                        {
-                            ResourceUri = new Uri(_azureOptions.Endpoint),
-                            DeploymentId = _azureOptions.Deployment
-                        }
                     }
                 }
             };
@@ -121,13 +99,14 @@ public sealed class DocumentIndexer
         }
 
         _logger.LogInformation("Uploading {Count} spans to Azure AI Search for document {DocumentId}", actions.Count, document.DocumentId);
-        var batch = IndexDocumentsBatch.Create(actions);
-        await _searchClient.IndexDocumentsAsync(batch, cancellationToken);
+        var batch = IndexDocumentsBatch.Create(actions.ToArray());
+        await _searchClient.IndexDocumentsAsync(batch, cancellationToken: cancellationToken);
     }
 
     private async Task<IReadOnlyList<float>> EmbedAsync(string text, CancellationToken cancellationToken)
     {
-        var embedding = await _azureClient.GetEmbeddingsAsync(new EmbeddingsOptions(_azureOptions.Deployment, new[] { text }), cancellationToken);
-        return embedding.Value.Data.First().Embedding;
+        var options = new EmbeddingsOptions(_azureOptions.Deployment, new[] { text });
+        var embedding = await _azureClient.GetEmbeddingsAsync(options, cancellationToken);
+        return embedding.Value.Data.First().Embedding.ToArray();
     }
 }

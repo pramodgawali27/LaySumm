@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
@@ -10,14 +11,13 @@ using Azure.Storage.Blobs;
 using LaySumm.Api.Configuration;
 using LaySumm.Api.Processing.Models;
 using LaySumm.Api.Processing.Summarization;
+using LaySumm.Api.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OpenAI.Images;
-using OpenAiSdkClient = OpenAI.OpenAIClient;
 using AzureOpenAIClient = Azure.AI.OpenAI.OpenAIClient;
 using AzureImageGenerationOptions = Azure.AI.OpenAI.ImageGenerationOptions;
 using AzureImageSize = Azure.AI.OpenAI.ImageSize;
-using AzureImageResponseFormat = Azure.AI.OpenAI.ImageGenerationResponseFormat;
+using ImageGenerationConfig = LaySumm.Api.Configuration.ImageGenerationOptions;
 
 namespace LaySumm.Api.Processing.Visualization;
 
@@ -31,7 +31,7 @@ public sealed class VisualizationService
     public VisualizationService(
         BlobServiceClient blobServiceClient,
         IOptions<StorageOptions> storageOptions,
-        IOptions<ImageGenerationOptions> imageGenerationOptions,
+        IOptions<ImageGenerationConfig> imageGenerationOptions,
         ILogger<VisualizationService> logger)
     {
         _blobServiceClient = blobServiceClient;
@@ -84,11 +84,10 @@ public sealed class VisualizationService
         return visuals;
     }
 
-    private static IImageGenerator? CreateImageGenerator(ImageGenerationOptions options)
+    private static IImageGenerator? CreateImageGenerator(ImageGenerationConfig options)
     {
         return options.Provider switch
         {
-            ImageProvider.OpenAI when options.OpenAI is not null => new OpenAiImageGenerator(options.OpenAI.ApiKey, options.OpenAI.Organization),
             ImageProvider.AzureOpenAI when options.AzureOpenAI is not null => new AzureOpenAiImageGenerator(options.AzureOpenAI.Endpoint, options.AzureOpenAI.Key, options.AzureOpenAI.Deployment),
             ImageProvider.None => null,
             _ => null
@@ -100,8 +99,7 @@ public sealed class VisualizationService
         var openAiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
         if (!string.IsNullOrWhiteSpace(openAiKey))
         {
-            logger.LogInformation("Image generation configured via OPENAI_API_KEY environment variable.");
-            return new OpenAiImageGenerator(openAiKey, organization: null);
+            logger.LogWarning("OPENAI image generation is not currently supported by this build.");
         }
 
         var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_IMAGES_ENDPOINT");
@@ -143,36 +141,6 @@ public sealed class VisualizationService
         Task<string?> GenerateAsync(string prompt, CancellationToken cancellationToken);
     }
 
-    private sealed class OpenAiImageGenerator : IImageGenerator
-    {
-        private readonly OpenAiSdkClient _client;
-
-        public OpenAiImageGenerator(string apiKey, string? organization)
-        {
-            if (!string.IsNullOrWhiteSpace(organization))
-            {
-                _client = new OpenAiSdkClient(apiKey, organization);
-            }
-            else
-            {
-                _client = new OpenAiSdkClient(apiKey);
-            }
-        }
-
-        public async Task<string?> GenerateAsync(string prompt, CancellationToken cancellationToken)
-        {
-            var request = new ImageGenerationRequest
-            {
-                Prompt = prompt,
-                Size = ImageSize._1024x1024,
-                ResponseFormat = ImageResponseFormat.B64Json
-            };
-
-            var response = await _client.ImagesEndPoint.GenerateImageAsync(request, cancellationToken);
-            return response.Data.FirstOrDefault()?.B64Json;
-        }
-    }
-
     private sealed class AzureOpenAiImageGenerator : IImageGenerator
     {
         private readonly AzureOpenAIClient _client;
@@ -188,13 +156,32 @@ public sealed class VisualizationService
         {
             var options = new AzureImageGenerationOptions
             {
+                DeploymentName = _deployment,
                 Prompt = prompt,
                 Size = new AzureImageSize("1024x1024"),
-                ResponseFormat = AzureImageResponseFormat.Base64
+                ImageCount = 1
             };
 
-            var response = await _client.GetImageGenerationsAsync(_deployment, options, cancellationToken);
-            return response.Value.Data.FirstOrDefault()?.Base64Data;
+            var response = await _client.GetImageGenerationsAsync(options, cancellationToken);
+            var data = response.Value.Data.FirstOrDefault();
+            if (data is null)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrEmpty(data.Base64Data))
+            {
+                return data.Base64Data;
+            }
+
+            if (data.Url is Uri imageUri)
+            {
+                using var httpClient = new HttpClient();
+                var bytes = await httpClient.GetByteArrayAsync(imageUri, cancellationToken);
+                return Convert.ToBase64String(bytes);
+            }
+
+            return null;
         }
     }
 }

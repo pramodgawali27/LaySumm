@@ -11,6 +11,7 @@ using LaySumm.Api.Configuration;
 using LaySumm.Api.Processing.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using AzureOpenAIClient = Azure.AI.OpenAI.OpenAIClient;
 
 namespace LaySumm.Api.Processing.Summarization;
 
@@ -55,8 +56,8 @@ public sealed class SummarizationService
             Temperature = 0.2f,
             MaxTokens = 1024
         };
-        chatOptions.Messages.Add(new ChatMessage(ChatRole.System, instructions));
-        chatOptions.Messages.Add(new ChatMessage(ChatRole.User, prompt));
+        chatOptions.Messages.Add(new ChatRequestSystemMessage(instructions));
+        chatOptions.Messages.Add(new ChatRequestUserMessage(prompt));
 
         var response = await _client.GetChatCompletionsAsync(chatOptions, cancellationToken);
         return response.Value.Choices[0].Message.Content;

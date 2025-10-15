@@ -13,6 +13,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using LaySumm.Api.Configuration;
 using LaySumm.Api.Processing.Models;
 using LaySumm.Api.Processing.Summarization;
+using LaySumm.Api.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

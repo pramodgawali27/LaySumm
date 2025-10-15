@@ -11,6 +11,8 @@ using LaySumm.Api.Configuration;
 using LaySumm.Api.Processing.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using AzureOpenAIClient = Azure.AI.OpenAI.OpenAIClient;
+using AzureSearchOptions = Azure.Search.Documents.SearchOptions;
 
 namespace LaySumm.Api.Processing.Retrieval;
 
@@ -32,13 +34,12 @@ public sealed class DocumentRetriever
     public async Task<IReadOnlyList<RetrievedSpan>> RetrieveAsync(string query, int top, CancellationToken cancellationToken)
     {
         var embedding = await _azureClient.GetEmbeddingsAsync(new EmbeddingsOptions(_options.Deployment, new[] { query }), cancellationToken);
-        var queryVector = embedding.Value.Data.First().Embedding;
+        var queryVector = embedding.Value.Data.First().Embedding.ToArray();
 
-        var searchOptions = new SearchOptions
+        var searchOptions = new AzureSearchOptions
         {
             Size = top,
-            QueryType = SearchQueryType.Semantic,
-            SemanticConfigurationName = "default"
+            QueryType = SearchQueryType.Simple
         };
 
         searchOptions.Select.Add("id");
@@ -64,7 +65,7 @@ public sealed class DocumentRetriever
                 document.GetString("sectionId")!,
                 document.GetString("spanId")!,
                 document.GetString("text")!,
-                document.TryGetValue("pageNumber", out int page) ? page : 0,
+                TryGetInt(document, "pageNumber"),
                 cosine));
         }
 
@@ -76,6 +77,23 @@ public sealed class DocumentRetriever
         return spans
             .GroupBy(span => span.SpanId)
             .Select(group => group.OrderByDescending(span => span.Score).First());
+    }
+
+    private static int TryGetInt(SearchDocument document, string fieldName)
+    {
+        if (document.TryGetValue(fieldName, out object? value))
+        {
+            return value switch
+            {
+                int i => i,
+                long l => (int)l,
+                double d => (int)d,
+                float f => (int)f,
+                _ => 0
+            };
+        }
+
+        return 0;
     }
 
     private static bool TryConvertEmbedding(object? value, out IReadOnlyList<float> embedding)
@@ -93,6 +111,12 @@ public sealed class DocumentRetriever
                 return true;
             case IEnumerable<double> doubleEnumerable:
                 embedding = doubleEnumerable.Select(static d => (float)d).ToArray();
+                return true;
+            case ReadOnlyMemory<float> floatMemory:
+                embedding = floatMemory.ToArray();
+                return true;
+            case ReadOnlyMemory<double> doubleMemory:
+                embedding = doubleMemory.ToArray().Select(static d => (float)d).ToArray();
                 return true;
             default:
                 embedding = Array.Empty<float>();
