@@ -1,0 +1,90 @@
+name: ci
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore & build microservices
+        run: dotnet build --configuration Release
+
+      - name: Test microservices
+        run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install frontend deps
+        working-directory: frontends/admin-app
+        run: npm install
+
+      - name: Lint admin app
+        working-directory: frontends/admin-app
+        run: npm run lint -- --no-cache
+
+      - name: Install end-user deps
+        working-directory: frontends/end-user-app
+        run: npm install
+
+      - name: Lint end-user app
+        working-directory: frontends/end-user-app
+        run: npm run lint -- --no-cache
+
+      - name: Generate SBOM
+        run: dotnet list package --include-transitive > sbom.txt
+
+      - name: Upload coverage & SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-and-sbom
+          path: |
+            **/TestResults/*.xml
+            sbom.txt
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: CodeQL Init
+        uses: github/codeql-action/init@v3
+        with:
+          languages: 'csharp,javascript'
+      - name: CodeQL Analyze
+        uses: github/codeql-action/analyze@v3
+
+  container-build:
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build ingestion image
+        run: docker build -f services/ingestion/Dockerfile -t ghcr.io/${{ github.repository }}/ingestion:${{ github.sha }} .
+        continue-on-error: true # placeholder until Dockerfiles are added
+      - name: Build summarizer-a3 image
+        run: docker build -f services/summarizer-a3/Dockerfile -t ghcr.io/${{ github.repository }}/summarizer-a3:${{ github.sha }} .
+        continue-on-error: true

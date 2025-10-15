@@ -1,0 +1,31 @@
+# Agent Orchestrator Lane A4
+
+## Purpose
+Agentic workflow orchestrating summarize → validate → refine → release with human-in-loop stops.
+
+## Endpoints
+| Method | Path | Purpose | Request DTO | Response DTO | Idempotency / Retry |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/api/agent-orchestrator-a4/status` | Liveness check. | - | ServiceStatus | Cacheable |
+| GET | `/api/agent-orchestrator-a4/workflow` | Return the Microsoft Agent Framework blueprint for the PLS workflow. | - | WorkflowBlueprintResponse | Cacheable with ETag |
+| POST | `/api/agent-orchestrator-a4/preview` | Dry-run evaluation of the orchestrator lane. | AgentOrchestratorA4Request | AgentOrchestratorA4Response | Idempotent via referenceId |
+
+## DTO Highlights
+- AgentWorkflowRequest – documentId, lane preferences, validator + reviewer requirements.
+- AgentActionRequest – stepId, action type (approve/override/retry), actor.
+- AgentWorkflowView – DAG of steps, state transitions, audit trail references.
+
+## Configuration
+- `Agents:*` – optional overrides for role instructions.
+- `Auth:*` – OIDC configuration consumed by `AddPlatformSecurity`.
+
+## Idempotency & Resiliency
+- WorkflowId minted by orchestrator; actions require unique actionId to avoid duplicates.
+- External step execution uses Polly fallback to human review queue after 3 failures.
+- Error responses use the shared `ErrorResponse` contract from `Platform.Api`.
+- Health checks exposed at `/healthz` and instrumented with OpenTelemetry + Serilog.
+
+## Security
+- Enforces JWT bearer auth (OIDC).
+- Applies RBAC via role claims (`admin`, service-specific roles).
+- Audit events are emitted to the audit service using the shared correlation ID.
