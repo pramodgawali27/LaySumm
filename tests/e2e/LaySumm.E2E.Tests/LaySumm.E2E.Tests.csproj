@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.7" />
+    <PackageReference Include="xunit" Version="2.5.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.0" PrivateAssets="all" />
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../services/gateway-bff/src/GatewayBff.Api/GatewayBff.Api.csproj" />
+    <ProjectReference Include="../../services/ingestion/src/Ingestion.Api/Ingestion.Api.csproj" />
+    <ProjectReference Include="../../services/summarizer-a3/src/SummarizerA3.Api/SummarizerA3.Api.csproj" />
+    <ProjectReference Include="../../services/validator/src/Validator.Api/Validator.Api.csproj" />
+    <ProjectReference Include="../../services/batch-orchestrator-a5/src/BatchOrchestratorA5.Api/BatchOrchestratorA5.Api.csproj" />
+  </ItemGroup>
+</Project>

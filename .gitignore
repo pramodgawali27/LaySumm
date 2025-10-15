@@ -192,3 +192,15 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+# Node/Next.js artifacts
+node_modules/
+.next/
+*.log
+
+# .NET artifacts
+bin/
+obj/
+TestResults/
+*.user
+*.suo
+*.swp
