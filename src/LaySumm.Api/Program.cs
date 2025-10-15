@@ -5,6 +5,12 @@ using LaySumm.Api.Configuration;
 using LaySumm.Api.Models.Requests;
 using LaySumm.Api.Models.Responses;
 using LaySumm.Api.Services;
+using LaySumm.Api.Processing.Assembly;
+using LaySumm.Api.Processing.Ingestion;
+using LaySumm.Api.Processing.Indexing;
+using LaySumm.Api.Processing.Retrieval;
+using LaySumm.Api.Processing.Summarization;
+using LaySumm.Api.Processing.Visualization;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
 
@@ -22,6 +28,23 @@ builder.Services.AddOptions<SearchOptions>()
     .Bind(builder.Configuration.GetSection(SearchOptions.SectionName))
     .ValidateDataAnnotations();
 
+builder.Services.AddOptions<ImageGenerationOptions>()
+    .Bind(builder.Configuration.GetSection(ImageGenerationOptions.SectionName))
+    .Validate(options =>
+    {
+        return options.Provider switch
+        {
+            ImageProvider.None => true,
+            ImageProvider.OpenAI => options.OpenAI is not null && !string.IsNullOrWhiteSpace(options.OpenAI.ApiKey),
+            ImageProvider.AzureOpenAI => options.AzureOpenAI is not null
+                && !string.IsNullOrWhiteSpace(options.AzureOpenAI.Endpoint)
+                && !string.IsNullOrWhiteSpace(options.AzureOpenAI.Key)
+                && !string.IsNullOrWhiteSpace(options.AzureOpenAI.Deployment),
+            _ => false
+        };
+    }, "Image generation configuration is invalid.")
+    .ValidateOnStart();
+
 builder.Services.AddAzureClients(factory =>
 {
     factory.AddBlobServiceClient(builder.Configuration.GetSection(StorageOptions.SectionName));
@@ -34,6 +57,14 @@ builder.Services.AddSingleton(provider =>
 });
 
 builder.Services.AddSingleton<AgentFactory>();
+builder.Services.AddSingleton<AudioTranscriptionService>();
+builder.Services.AddSingleton<FileIngestionService>();
+builder.Services.AddSingleton<DocumentParser>();
+builder.Services.AddSingleton<DocumentIndexer>();
+builder.Services.AddSingleton<DocumentRetriever>();
+builder.Services.AddSingleton<SummarizationService>();
+builder.Services.AddSingleton<VisualizationService>();
+builder.Services.AddSingleton<DocumentAssembler>();
 builder.Services.AddSingleton<WorkflowBuilder>();
 builder.Services.AddSingleton<PlainLanguageSummaryOrchestrator>();
 builder.Services.AddSingleton<BackgroundWorkflowQueue>();

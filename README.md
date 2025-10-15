@@ -4,6 +4,8 @@
 
 LaySumm is now a **.NET 8** reference implementation of a plain-language summary (PLS) generator for complex medical content. The service follows the Microsoft Agent Framework (public preview) specification and produces faithful, patient-friendly summaries with provenance, visuals, and multi-format outputs.
 
+For a detailed walkthrough of how a PDF travels through the agent workflow, see [LaySumm Technical Flow (PDF Example)](docs/technical-flow.md).
+
 ---
 
 ## ✨ Key Capabilities
@@ -70,7 +72,7 @@ LaySumm/
    dotnet build
    ```
 
-2. **Configure secrets** in `appsettings.json` or with environment variables for Azure OpenAI, Blob Storage, and Azure AI Search.
+2. **Configure secrets** in `appsettings.json` or with environment variables for Azure OpenAI, Blob Storage, Azure AI Search, and image generation (`ImageGeneration` section for OpenAI DALL·E or Azure OpenAI Images).
 
 3. **Run the API**
 

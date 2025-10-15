@@ -1,0 +1,8 @@
+C:\Pramod_Workspace\Xelentra\laysum-platform\LaySumm\src\LaySumm.Api\obj\Debug\net8.0\LaySumm.Api.csproj.AssemblyReference.cache
+C:\Pramod_Workspace\Xelentra\laysum-platform\LaySumm\src\LaySumm.Api\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Pramod_Workspace\Xelentra\laysum-platform\LaySumm\src\LaySumm.Api\obj\Debug\net8.0\LaySumm.Api.GeneratedMSBuildEditorConfig.editorconfig
+C:\Pramod_Workspace\Xelentra\laysum-platform\LaySumm\src\LaySumm.Api\obj\Debug\net8.0\LaySumm.Api.AssemblyInfoInputs.cache
+C:\Pramod_Workspace\Xelentra\laysum-platform\LaySumm\src\LaySumm.Api\obj\Debug\net8.0\LaySumm.Api.AssemblyInfo.cs
+C:\Pramod_Workspace\Xelentra\laysum-platform\LaySumm\src\LaySumm.Api\obj\Debug\net8.0\LaySumm.Api.csproj.CoreCompileInputs.cache
+C:\Pramod_Workspace\Xelentra\laysum-platform\LaySumm\src\LaySumm.Api\obj\Debug\net8.0\LaySumm.Api.MvcApplicationPartsAssemblyInfo.cache
+C:\Pramod_Workspace\Xelentra\laysum-platform\LaySumm\src\LaySumm.Api\obj\Debug\net8.0\LaySumm.Api.sourcelink.json
