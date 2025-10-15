@@ -6,9 +6,9 @@ Agentic workflow orchestrating summarize → validate → refine → release wit
 ## Endpoints
 | Method | Path | Purpose | Request DTO | Response DTO | Idempotency / Retry |
 | --- | --- | --- | --- | --- | --- |
-| POST | `/api/agent-orchestrator/workflows` | Start orchestration for document. | AgentWorkflowRequest | AgentWorkflowResponse | Idempotent via workflowId. |
-| POST | `/api/agent-orchestrator/workflows/{workflowId}/actions` | Submit manual override or advance state. | AgentActionRequest | AgentWorkflowResponse | Idempotent per actionId. |
-| GET | `/api/agent-orchestrator/workflows/{workflowId}` | Fetch workflow graph. | - | AgentWorkflowView | Cacheable with ETag |
+| GET | `/api/agent-orchestrator-a4/status` | Liveness check. | - | ServiceStatus | Cacheable |
+| GET | `/api/agent-orchestrator-a4/workflow` | Return the Microsoft Agent Framework blueprint for the PLS workflow. | - | WorkflowBlueprintResponse | Cacheable with ETag |
+| POST | `/api/agent-orchestrator-a4/preview` | Dry-run evaluation of the orchestrator lane. | AgentOrchestratorA4Request | AgentOrchestratorA4Response | Idempotent via referenceId |
 
 ## DTO Highlights
 - AgentWorkflowRequest – documentId, lane preferences, validator + reviewer requirements.
@@ -16,9 +16,8 @@ Agentic workflow orchestrating summarize → validate → refine → release wit
 - AgentWorkflowView – DAG of steps, state transitions, audit trail references.
 
 ## Configuration
-- `Workflows:SemanticKernelConfig`
-- `Queues:AgentProgress`
-- `Routing:HumanReviewQueue`
+- `Agents:*` – optional overrides for role instructions.
+- `Auth:*` – OIDC configuration consumed by `AddPlatformSecurity`.
 
 ## Idempotency & Resiliency
 - WorkflowId minted by orchestrator; actions require unique actionId to avoid duplicates.

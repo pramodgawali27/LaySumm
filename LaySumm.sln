@@ -4,6 +4,8 @@ VisualStudioVersion = 17.8.33103.201
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Platform.Api", "pkg/platform/Platform.Api/Platform.Api.csproj", "{8C77B600-D67D-496F-8E15-A9F45AC94211}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Platform.AgentFramework", "pkg/platform/Platform.AgentFramework/Platform.AgentFramework.csproj", "{CC624B3F-B733-4549-B9D0-A5547F7A21EC}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ingestion.Api", "services/ingestion/src/Ingestion.Api/Ingestion.Api.csproj", "{9C9597FF-C8F3-40A3-BE81-2178911BB915}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SummarizerA3.Api", "services/summarizer-a3/src/SummarizerA3.Api/SummarizerA3.Api.csproj", "{5D706BA9-FBF0-4F24-ADBA-2B83EFDD843F}"
@@ -26,6 +28,10 @@ Global
         {8C77B600-D67D-496F-8E15-A9F45AC94211}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {8C77B600-D67D-496F-8E15-A9F45AC94211}.Release|Any CPU.ActiveCfg = Release|Any CPU
         {8C77B600-D67D-496F-8E15-A9F45AC94211}.Release|Any CPU.Build.0 = Release|Any CPU
+        {CC624B3F-B733-4549-B9D0-A5547F7A21EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {CC624B3F-B733-4549-B9D0-A5547F7A21EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {CC624B3F-B733-4549-B9D0-A5547F7A21EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {CC624B3F-B733-4549-B9D0-A5547F7A21EC}.Release|Any CPU.Build.0 = Release|Any CPU
         {9C9597FF-C8F3-40A3-BE81-2178911BB915}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
         {9C9597FF-C8F3-40A3-BE81-2178911BB915}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {9C9597FF-C8F3-40A3-BE81-2178911BB915}.Release|Any CPU.ActiveCfg = Release|Any CPU

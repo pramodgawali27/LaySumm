@@ -1,11 +1,14 @@
 using System.Net.Http;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
+using Platform.Api;
 using Platform.Api.Validation;
 using Polly;
 using Polly.Extensions.Http;
 using Serilog;
 using AgentOrchestratorA4.Api.Contracts;
+using AgentOrchestratorA4.Api.Orchestration;
+using Platform.AgentFramework.Agents;
+using Platform.AgentFramework.Workflows;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,14 +30,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 builder.Services.AddHealthChecks();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = builder.Configuration["Auth:Authority"];
-        options.Audience = builder.Configuration["Auth:Audience"];
-        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
-    });
-builder.Services.AddAuthorization();
+builder.Services.AddPlatformSecurity(builder.Configuration);
 
 builder.Services.AddProblemDetails();
 
@@ -50,6 +46,9 @@ builder.Services.AddOpenTelemetry()
 builder.Services.AddHttpClient("agent-orchestrator-a4")
     .AddPolicyHandler(GetRetryPolicy())
     .AddPolicyHandler(GetCircuitBreakerPolicy());
+
+builder.Services.AddLaySummAgents(builder.Configuration);
+builder.Services.AddSingleton<PlainLanguageSummaryWorkflow>();
 
 var app = builder.Build();
 
@@ -78,6 +77,14 @@ app.MapHealthChecks("/healthz");
 app.MapGet("/api/agent-orchestrator-a4/status", () =>
     Results.Ok(new ServiceStatus("Agent Orchestrator A4 API", "v1", DateTimeOffset.UtcNow)))
     .Produces<ServiceStatus>()
+    .RequireAuthorization();
+
+app.MapGet("/api/agent-orchestrator-a4/workflow", (PlainLanguageSummaryWorkflow workflow) =>
+    {
+        var descriptor = workflow.Describe();
+        return Results.Ok(WorkflowBlueprintResponse.FromDescriptor(descriptor));
+    })
+    .Produces<WorkflowBlueprintResponse>()
     .RequireAuthorization();
 
 app.MapPost("/api/agent-orchestrator-a4/preview", (AgentOrchestratorA4Request request) =>

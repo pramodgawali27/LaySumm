@@ -22,7 +22,7 @@ Production-grade Plain Language Summarization (PLS) platform for medical documen
 | summarizer-a1 | Prompt templating lane with few-shot registry. | `POST /api/summarizer/a1/summaries`, `POST /api/summarizer/a1/prompts/validate` | `PromptSummaryRequest`, `PromptSummaryResponse`, `PromptValidationRequest` |
 | summarizer-a2 | Fine-tuned/LoRA lane with canary toggles. | `POST /api/summarizer/a2/summaries`, `POST /api/summarizer/a2/adapters/canary` | `FineTuneSummaryRequest`, `FineTuneSummaryResponse`, `AdapterCanaryRequest` |
 | summarizer-a3 | Retrieval-augmented summarization with citations. | `POST /api/summarizer-a3/summaries`, `GET /api/summarizer-a3/summaries/{id}` | `SummarizationRequest`, `SummarizationResponse`, `SummarizationStatusResponse` |
-| agent-orchestrator-a4 | Agentic workflow (summarize → validate → refine → release) with SK/LangChain equivalent integration. | `POST /api/agent-orchestrator/workflows`, `POST /api/agent-orchestrator/workflows/{id}/actions` | `AgentWorkflowRequest`, `AgentWorkflowResponse`, `AgentActionRequest` |
+| agent-orchestrator-a4 | Agentic workflow (summarize → validate → refine → release) composed via Microsoft Agent Framework. | `GET /api/agent-orchestrator-a4/workflow`, `POST /api/agent-orchestrator-a4/preview` | `WorkflowBlueprintResponse`, `AgentOrchestratorA4Request`, `AgentOrchestratorA4Response` |
 | validator | FRE > 60 readability target, jargon ban list, numeric fact checks. | `POST /api/validator/evaluations`, `POST /api/validator/readability-preview` | `ValidationRequest`, `ValidationResponse`, `ReadabilityPreviewRequest` |
 | human-review | Review queues, diff UI, approvals, audit events. | `GET /api/human-review/queues`, `POST /api/human-review/tasks/{id}/decision` | `QueueListResponse`, `ReviewTaskView`, `ReviewDecisionRequest` |
 | batch-orchestrator-a5 | Schedule & shard high-volume jobs, manage retries/DLQs. | `POST /api/batch/jobs`, `GET /api/batch/jobs/{id}`, `POST /api/batch/jobs/{id}/cancel` | `BatchJobRequest`, `BatchJobResponse`, `BatchJobStatusResponse`, `BatchJobCancelRequest` |
@@ -61,6 +61,7 @@ Code comments and IaC scaffolds (see `ops/iac`):
 /frontends/admin-app                     # Admin Next.js app (OIDC protected)
 /frontends/end-user-app                  # End-user Next.js app (upload/status flows)
 /pkg/platform/Platform.Api               # Shared validation + error primitives
+/pkg/platform/Platform.AgentFramework    # Agent blueprints + workflow descriptors (Microsoft Agent Framework)
 /ops/iac/azure | aws                     # Bicep/Terraform stubs for cloud resources
 /ops/pipelines                           # CI/CD workflow definitions
 /tests                                   # End-to-end, load, evaluation placeholders

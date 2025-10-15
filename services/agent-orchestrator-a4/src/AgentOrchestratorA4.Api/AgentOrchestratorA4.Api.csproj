@@ -7,5 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../../../pkg/platform/Platform.Api/Platform.Api.csproj" />
+    <ProjectReference Include="../../../../pkg/platform/Platform.AgentFramework/Platform.AgentFramework.csproj" />
   </ItemGroup>
 </Project>
