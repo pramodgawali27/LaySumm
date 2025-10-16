@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LaySumm.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+031dc71689d8ea0198b02874e1ea129e3738e945")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0a173d62f06d3a47b1e34b8c8e988e2e98c3efac")]
 [assembly: System.Reflection.AssemblyProductAttribute("LaySumm.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LaySumm.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

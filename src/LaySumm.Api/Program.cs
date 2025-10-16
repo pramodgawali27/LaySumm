@@ -11,6 +11,7 @@ using LaySumm.Api.Processing.Indexing;
 using LaySumm.Api.Processing.Retrieval;
 using LaySumm.Api.Processing.Summarization;
 using LaySumm.Api.Processing.Visualization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
 using SearchOptionsConfig = LaySumm.Api.Configuration.SearchOptions;
@@ -66,6 +67,7 @@ builder.Services.AddSingleton<DocumentRetriever>();
 builder.Services.AddSingleton<SummarizationService>();
 builder.Services.AddSingleton<VisualizationService>();
 builder.Services.AddSingleton<DocumentAssembler>();
+builder.Services.AddSingleton<DocumentUploadService>();
 builder.Services.AddSingleton<WorkflowBuilder>();
 builder.Services.AddSingleton<PlainLanguageSummaryOrchestrator>();
 builder.Services.AddSingleton<BackgroundWorkflowQueue>();
@@ -75,6 +77,40 @@ var app = builder.Build();
 
 app.MapPost("/api/pls", async (PlainLanguageSummaryRequest request, PlainLanguageSummaryOrchestrator orchestrator, CancellationToken cancellationToken) =>
 {
+    var job = await orchestrator.EnqueueAsync(request, cancellationToken);
+    return Results.Accepted($"/api/pls/{job.Id}", new SubmitResponse(job.Id));
+});
+
+app.MapPost("/api/pls/upload", async (HttpRequest httpRequest, DocumentUploadService uploadService, PlainLanguageSummaryOrchestrator orchestrator, CancellationToken cancellationToken) =>
+{
+    if (!httpRequest.HasFormContentType)
+    {
+        return Results.BadRequest("Request must be multipart/form-data.");
+    }
+
+    var form = await httpRequest.ReadFormAsync(cancellationToken);
+    var file = form.Files["file"];
+    if (file is null || file.Length == 0)
+    {
+        return Results.BadRequest("Document upload is required.");
+    }
+
+    var document = await uploadService.UploadAsync(file, cancellationToken);
+
+    var prompt = form["prompt"].ToString();
+    var forceRegenerate = false;
+    if (bool.TryParse(form["forceRegenerate"], out var parsed))
+    {
+        forceRegenerate = parsed;
+    }
+
+    var request = new PlainLanguageSummaryRequest
+    {
+        Documents = new[] { document },
+        UserPrompt = string.IsNullOrWhiteSpace(prompt) ? null : prompt,
+        ForceRegenerate = forceRegenerate
+    };
+
     var job = await orchestrator.EnqueueAsync(request, cancellationToken);
     return Results.Accepted($"/api/pls/{job.Id}", new SubmitResponse(job.Id));
 });
