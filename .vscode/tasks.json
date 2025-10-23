@@ -1,0 +1,35 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build and run LaySumm.Api",
+			"type": "shell",
+			"command": "dotnet build && dotnet run --project src/LaySumm.Api/LaySumm.Api.csproj",
+			"isBackground": false,
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "build LaySumm.Api",
+			"type": "shell",
+			"command": "dotnet build src/LaySumm.Api/LaySumm.Api.csproj",
+			"isBackground": false,
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		},
+		{
+			"label": "run LaySumm.Api",
+			"type": "shell",
+			"command": "dotnet run --project src/LaySumm.Api/LaySumm.Api.csproj",
+			"isBackground": false,
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		}
+	]
+}

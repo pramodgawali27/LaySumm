@@ -1,58 +1,119 @@
-# 🧠 LaySumm: Research on Simplified Summarization with LLMs
+# 🧠 LaySumm Plain-Language Summary Service
 
-[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)  
-**LaySumm** is a research project focused on generating **detailed Insights based on audience** from complex documents (e.g., medical, scientific, or legal) using Large Language Models (LLMs) like GPT-4, LLaMA, Mistral, and others. This project explores **prompt engineering**, **fine-tuning**, **retrieval-augmented generation (RAG)** and **Agentic Approach** strategies to produce summaries that are **readable**, **factually accurate**, and **accessible** to general audiences.
+[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
----
+LaySumm is now a **.NET 8** reference implementation of a plain-language summary (PLS) generator for complex medical content. The service follows the Microsoft Agent Framework (public preview) specification and produces faithful, patient-friendly summaries with provenance, visuals, and multi-format outputs.
 
-## 🎯 Project Goals
-
-- ✅ Build reproducible pipelines for generating simplified summaries using LLMs.
-- ✅ Evaluate readability (e.g., Flesch-Kincaid) and factual consistency of generated content.
-- ✅ Compare OpenAI, Hugging Face, and open-source models for generating insights tasks.
-- ✅ Explore prompt-tuning, fine-tuning, and retrieval-based summarization.
-- ✅ Provide dashboards and metrics to visualize improvement over baselines.
+For a detailed walkthrough of how a PDF travels through the agent workflow, see [LaySumm Technical Flow (PDF Example)](docs/technical-flow.md).
 
 ---
 
-## 🧱 Repository Structure
+## ✨ Key Capabilities
+
+- 📥 **Ingest multi-modal sources** (PDF, DOCX, audio) with OCR/ASR pipelines and structural understanding.
+- 🔍 **Hybrid retrieval** that combines hierarchical chunking, semantic search, and layout-aware ranking.
+- 📝 **Guardrailed summarization** tuned for 8th–10th grade reading levels with inline citations and limitations.
+- 🖼️ **Visual preservation & generation** that references existing figures and emits prompts for new explanatory imagery.
+- 📄 **Multi-format outputs** (JSON envelope + rendered HTML/DOCX/PDF) with a provenance appendix and glossary.
+- 🔁 **Workflow supervision** with checkpoints and hooks for human approval prior to final rendering.
+
+---
+
+## 🏗️ Solution Architecture
+
+```text
+┌─────────────────────────┐       ┌─────────────────────┐
+│   ASP.NET Core Minimal   │  POST │  /api/pls           │
+│   API + Background Jobs  │──────▶│  /api/pls/{jobId}   │
+└────────────┬────────────┘       └─────────┬───────────┘
+             │                                │
+             ▼                                ▼
+┌─────────────────────────┐       ┌─────────────────────────┐
+│  WorkflowDispatcher     │◀────▶│  BackgroundWorkflowQueue │
+└────────────┬────────────┘       └─────────────────────────┘
+             │
+             ▼
+┌───────────────────────────────────────────────────────────┐
+│  SupervisorWorkflow                                        │
+│  Reader → Indexer → (Retriever | SectionIterator) →        │
+│  Summarizer → Visualizer → Assembler                       │
+└───────────────────────────────────────────────────────────┘
+```
+
+Each agent is represented by a `ChatClientAgent` configured through the Microsoft Agent Framework. Azure OpenAI is the default model provider with optional OpenAI fallback. Azure Blob Storage persists source files and generated assets, Azure Table/SQL keeps provenance indexes, and Azure AI Search powers hybrid retrieval.
+
+---
+
+## 📁 Repository Layout
 
 ```bash
 LaySumm/
-├── data/                  # Input and output datasets
-│   ├── raw/               # Raw input documents
-│   ├── processed/         # Preprocessed input/output pairs
-│   ├── prompts/           # Prompt templates
-│   └── datasets.md        # Documentation for datasets
-│
-├── models/
-│   ├── baselines/         # Prompt-only summarizers (e.g., GPT-4)
-│   ├── fine-tuned/        # Fine-tuned checkpoints
-│   └── retriever/         # RAG components (e.g., FAISS, Azure Search)
-│
-├── evaluation/
-│   ├── metrics.py         # ROUGE, BERTScore, readability metrics
-│   ├── factual_eval.py    # QA-based or LLM-based factuality scoring
-│   ├── results/           # Evaluation output data
-│   └── plots/             # Visualization (charts, graphs)
-│
-├── notebooks/             # Jupyter Notebooks for experimentation
-│   ├── 01_generate_summary.ipynb
-│   ├── 02_fine_tuning.ipynb
-│   └── 03_evaluation_dashboard.ipynb
-│
-├── src/
-│   ├── pipeline.py        # End-to-end summarization pipeline
-│   ├── inference.py       # Model runner
-│   └── retriever.py       # For RAG use case
-│
-├── docs/                  # Project documentation
-│   ├── architecture.md
-│   ├── evaluation-methods.md
-│   └── model-notes.md
-│
-├── research-paper.md      # Extended summary of research or whitepaper
-├── requirements.txt       # Python dependencies
-├── LICENSE                # MIT License
-├── .gitignore             # Ignore files (e.g., checkpoints, env)
-└── README.md              # You're here!
+├── LaySumm.sln
+├── README.md
+└── src/
+    └── LaySumm.Api/
+        ├── appsettings.json          # Configuration placeholders
+        ├── LaySumm.Api.csproj        # .NET 8 minimal API project
+        ├── Program.cs                # Service registration & endpoints
+        ├── Agents/                   # Agent specifications & prompts
+        ├── Configuration/            # Options bound from configuration
+        ├── Models/                   # API request/response contracts
+        └── Services/                 # Workflow orchestration components
+```
+
+---
+
+## 🚀 Getting Started
+
+1. **Restore & build**
+
+   ```bash
+   dotnet restore
+   dotnet build
+   ```
+
+2. **Configure secrets** in `appsettings.json` or with environment variables for Azure OpenAI, Blob Storage, Azure AI Search, and image generation (`ImageGeneration` section for OpenAI DALL·E or Azure OpenAI Images).
+
+3. **Run the API**
+
+   ```bash
+   dotnet run --project src/LaySumm.Api/LaySumm.Api.csproj
+   ```
+
+4. **Submit a job**
+
+   ```bash
+   curl -X POST https://localhost:5001/api/pls \
+     -H "Content-Type: application/json" \
+     -d '{
+           "documents": [
+             {
+               "blobUri": "https://storage/.../trial.pdf",
+               "fileName": "trial.pdf",
+               "mediaType": "application/pdf"
+             }
+           ],
+           "userPrompt": "Explain the primary endpoint results"
+         }'
+   ```
+
+5. **Poll for status**
+
+   ```bash
+   curl https://localhost:5001/api/pls/{jobId}
+   ```
+
+---
+
+## 📌 Next Steps
+
+- Implement concrete Azure/OpenAI `IChatClient` adapters and workflow activities.
+- Replace placeholder storage URIs with actual Azure Blob uploads.
+- Integrate Azure Document Intelligence / Tesseract for OCR and Whisper/Azure Speech for ASR.
+- Expand quality checks (readability scoring, contradiction detection) before final render.
+
+---
+
+## 📄 License
+
+This project is released under the [MIT License](LICENSE).
